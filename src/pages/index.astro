@@ -1,0 +1,412 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import Layout from '../layouts/Layout.astro';
+import { SITE } from '../data/site';
+import { TRUST, AUD, TABS, REPAIRS, PAIRS, PATHS, FALL, WHY, REVIEWS, ROLES } from '../data/content';
+import { FORM_ENDPOINT } from '../data/site';
+import logo from '../assets/sunify/logo.png';
+import kitchen from '../assets/sunify/kitchen.jpg';
+import yardBefore from '../assets/sunify/yard-before.jpg';
+import yardAfter from '../assets/sunify/yard-after.jpg';
+
+// Load every photo in src/assets/sunify so the before/after pairs can refer to them by file name.
+const photos = import.meta.glob<{ default: ImageMetadata }>('../assets/sunify/*.jpg', { eager: true });
+const photo = (file: string) => photos[`../assets/sunify/${file}`].default;
+
+const baSizes = '(min-width: 1000px) 560px, (min-width: 560px) 520px, 100vw';
+---
+<Layout>
+<a class="skip-link" href="#main">Skip to content</a>
+<div id="top" class="page">
+
+  <div class="topbar">
+    <div class="container">
+      <span>Insured · $2M liability · WorkSafeBC registered · Free photo estimates</span>
+      <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="container">
+      <a href="#top" class="brand" aria-label="Sunify Group, back to top">
+        <Image src={logo} alt="" width={104} height={104} class="brand-logo" loading="eager" />
+        <span class="brand-text"><span class="brand-name">Sunify Group</span><span class="brand-tag">Renovations · Repairs · Property care</span></span>
+      </a>
+      <nav class="main-nav" aria-label="Main">
+        <a href="#services">Services</a>
+        <a href="#work">Recent work</a>
+        <a href="#why">Why Sunify</a>
+        <a href="#quote">Contact</a>
+      </nav>
+      <a href={SITE.phoneHref} class="header-call">{SITE.phoneDisplay}</a>
+    </div>
+  </header>
+
+  <main id="main">
+  <section class="hero">
+    <div class="hero-sun" aria-hidden="true">
+      <div class="hero-sun-inner">
+        <div class="hero-glow"></div>
+        {[-60, -30, 0, 30, 60].map((r, i) => (
+          <span class="hero-ray" style={`--r:${r}deg;--i:${i}`}><span></span></span>
+        ))}
+      </div>
+    </div>
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <p data-hero style="--i:0" class="hero-kicker">Family business · North Vancouver</p>
+        <h1 data-hero style="--i:1">Renovations planned around your home.</h1>
+        <p data-hero style="--i:2" class="hero-lead">Kitchen, bathroom and whole home renovations across Greater Vancouver, plus the smaller repairs and work orders that keep a property running.</p>
+        <div data-hero style="--i:3" class="hero-ctas">
+          <a href="#quote" class="btn btn-gold">Request a quote</a>
+          <a href={SITE.smsHref} class="btn btn-outline">Text us photos</a>
+        </div>
+      </div>
+      <div data-hero style="--i:4" class="hero-media">
+        <Image src={kitchen} alt="Renovated kitchen with white shaker cabinets, quartz island and stainless appliances" width={1600} widths={[640, 960, 1280, 1600]} sizes="(min-width: 1000px) 46vw, 100vw" loading="eager" fetchpriority="high" />
+        <div class="hero-badge">Kitchen renovation · Rental turnover</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="trust" aria-label="Credentials">
+    <div class="container">
+      {TRUST.map((t) => <span>{t}</span>)}
+    </div>
+  </section>
+
+  <section id="services" class="container services">
+    <div data-reveal class="services-head">
+      <h2 class="h2">What can we help with?</h2>
+      <div role="tablist" class="tabs" aria-label="Who are you?">
+        {TABS.map(([key, label], i) => (
+          <button type="button" role="tab" class="tab" id={`tab-${key}`} aria-controls={`panel-${key}`} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1} data-tab={key}>{label}</button>
+        ))}
+      </div>
+    </div>
+    {TABS.map(([key], i) => (
+      <div role="tabpanel" id={`panel-${key}`} aria-labelledby={`tab-${key}`} hidden={i !== 0} data-panel={key}>
+        <p class="services-intro">{AUD[key].intro}</p>
+        <div class="grid-lines svc-grid">
+          {AUD[key].items.map(([t, d]) => (
+            <div class="svc-card">
+              <h3>{t}</h3>
+              <p>{d}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    ))}
+    <div data-reveal class="repairs">
+      <span class="repairs-label">Smaller interior repairs:</span>
+      {REPAIRS.map((r) => <span class="repair-chip">{r}</span>)}
+    </div>
+  </section>
+
+  <section id="work" class="work">
+    <div class="container work-grid">
+      <div class="work-copy">
+        <h2 data-reveal class="h2">Before and after.</h2>
+        <p data-reveal class="work-lead">Drag the handle. Every job is closed out with photos like these.</p>
+        <div data-reveal class="pair-list">
+          {PAIRS.map((p, i) => (
+            <button type="button" class="pair-btn" aria-pressed={i === 0 ? 'true' : 'false'} aria-controls="ba-slider" data-pair={i}>
+              <span class="pair-title">{p.t}</span>
+              <span class="pair-place">{p.k}</span>
+            </button>
+          ))}
+        </div>
+        {PAIRS.map((p, i) => (
+          <p class="pair-desc" data-pair-desc={i} hidden={i !== 0}>{p.d}</p>
+        ))}
+      </div>
+      <div data-reveal class="ba-wrap">
+        <div class="ba" id="ba-slider" style={`aspect-ratio:${PAIRS[0].ratio}`} role="slider" tabindex="0" aria-label={`Before and after: ${PAIRS[0].t}`} aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="50% before" aria-orientation="horizontal">
+          {PAIRS.map((p, i) => (
+            <div class="ba-set" data-pair-set={i} data-title={p.t} data-ratio={p.ratio} hidden={i !== 0}>
+              <Image src={photo(p.a)} alt="After" class="ba-img" draggable="false" width={1040} widths={[480, 720, 1040]} sizes={baSizes} />
+              <Image src={photo(p.b)} alt="Before" class="ba-img ba-before" draggable="false" width={1040} widths={[480, 720, 1040]} sizes={baSizes} />
+            </div>
+          ))}
+          <span class="ba-label ba-label-before" aria-hidden="true">Before</span>
+          <span class="ba-label ba-label-after" aria-hidden="true">After</span>
+          <div class="ba-line" aria-hidden="true"></div>
+          <div class="ba-handle" aria-hidden="true">↔</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container paths">
+    <h2 data-reveal class="h2">Two paths, depending on the job.</h2>
+    <div class="paths-grid">
+      {PATHS.map((p) => (
+        <div data-reveal class:list={['path', p.dark ? 'path-dark' : 'path-light']}>
+          <div class="path-head">
+            <h3>{p.t}</h3>
+            <p>{p.d}</p>
+          </div>
+          <ol class="steps">
+            {p.steps.map(([t, d], i) => (
+              <li class="step">
+                <span class="step-num" aria-hidden="true">{i + 1}</span>
+                <span class="step-text"><strong>{t}</strong><span>{d}</span></span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="fall">
+    <div class="container fall-grid">
+      <div class="fall-photos">
+        <div data-reveal class="fall-photo"><Image src={yardBefore} alt="Side yard covered in fall leaves before cleanup" width={1000} widths={[400, 700, 1000]} sizes="(min-width: 1000px) 340px, 50vw" /></div>
+        <div data-reveal class="fall-photo"><Image src={yardAfter} alt="Same side yard after cleanup and power washing" width={1000} widths={[400, 700, 1000]} sizes="(min-width: 1000px) 340px, 50vw" /></div>
+      </div>
+      <div class="fall-copy">
+        <p data-reveal class="fall-kicker">Seasonal property care</p>
+        <h2 data-reveal class="h2">Fall cleanup for your yard and exterior.</h2>
+        <div class="fall-list">
+          {FALL.map((f) => (
+            <div data-reveal class="fall-item">
+              <h3>{f.t}</h3>
+              <p>{f.d}</p>
+            </div>
+          ))}
+        </div>
+        <a data-reveal href={SITE.smsHref} class="btn-navy">Text us your photos</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="why" class="container why">
+    <div class="why-grid">
+      <div class="why-side">
+        <h2 data-reveal class="h2">A contractor you can actually trust.</h2>
+        <p data-reveal class="why-lead">We show up when we say we will. We quote in writing. We treat your home like our own.</p>
+        {REVIEWS.map((r) => (
+          <figure data-reveal class="review">
+            <span class="review-stars" role="img" aria-label="5 out of 5 stars">★★★★★</span>
+            <blockquote>“{r.q}”</blockquote>
+            <figcaption>{r.w}</figcaption>
+          </figure>
+        ))}
+      </div>
+      <div class="grid-lines why-cards">
+        {WHY.map(([t, d]) => (
+          <div data-reveal class="why-card">
+            <h3>{t}</h3>
+            <p>{d}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section id="quote" class="quote">
+    <div class="container quote-grid">
+      <div class="quote-copy">
+        <h2 data-reveal class="h2">Tell us what you have in mind.</h2>
+        <p data-reveal class="quote-lead">We’ll help clarify the scope and next steps. Photo estimates are free where the scope can be reasonably assessed from images.</p>
+        <a data-reveal href={SITE.phoneHref} class="quote-phone">{SITE.phoneDisplay}</a>
+        <a data-reveal href={`mailto:${SITE.email}`} class="quote-email">{SITE.email}</a>
+        <p data-reveal class="quote-area">Serving all of Greater Vancouver from North Vancouver.</p>
+      </div>
+      <div>
+        <form data-reveal class="quote-form" id="quote-form" data-endpoint={FORM_ENDPOINT} method="post" action={FORM_ENDPOINT || undefined} enctype="multipart/form-data">
+          <div class="form-row">
+            <label class="field">Name<input name="name" autocomplete="name" required /></label>
+            <label class="field">Phone<input name="phone" type="tel" autocomplete="tel" required /></label>
+            <label class="field">Email<input name="email" type="email" autocomplete="email" /></label>
+            <label class="field">City<input name="city" autocomplete="address-level2" /></label>
+          </div>
+          <label class="field">I’m a<select name="client_type">{ROLES.map((r) => <option>{r}</option>)}</select></label>
+          <label class="field">What do you need?<textarea name="message" rows="4"></textarea></label>
+          <label class="field">Photos (from the ground is fine)<input name="photos" type="file" multiple accept="image/*" /></label>
+          <input type="hidden" name="_subject" value="New quote request from sunifygroup website" />
+          <p class="form-error" role="alert" hidden>Sorry, that didn’t send. Please call or email us instead.</p>
+          <button type="submit" class="form-submit">Request a quote</button>
+        </form>
+        <div class="form-thanks" id="form-thanks" tabindex="-1" role="status" hidden>Thanks. We’ll confirm scope and availability shortly.</div>
+      </div>
+    </div>
+  </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span class="footer-brand"><Image src={logo} alt="" width={80} height={80} />Sunify Group Inc.</span>
+      <span>BC incorporated · Insured to $2M · WorkSafeBC registered · Written workmanship warranty where applicable</span>
+      <div class="footer-meta">
+        <span>© 2026 Sunify Group Inc. · North Vancouver, BC</span>
+        <a href="https://backpackdigitalmedia.com" target="_blank" rel="noopener">Powered by Backpack Digital Media</a>
+      </div>
+    </div>
+  </footer>
+
+  <div class="mobile-bar">
+    <a href={SITE.phoneHref} class="mobile-bar-call">Call</a>
+    <a href="#quote" class="mobile-bar-quote">Get a quote</a>
+  </div>
+</div>
+</Layout>
+
+<script>
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- Scroll reveal ---------- */
+  // Elements are visible by default. We only hide them here, when JS runs and motion is allowed.
+  if (!reduce && 'IntersectionObserver' in window) {
+    const els = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
+    const show = (el: HTMLElement, i: number) => {
+      el.style.setProperty('--d', `${i * 0.08}s`);
+      el.classList.add('reveal-shown');
+      el.classList.remove('reveal-hidden');
+    };
+    const io = new IntersectionObserver((entries) => {
+      let i = 0;
+      entries.forEach((e) => {
+        if (e.isIntersecting) { io.unobserve(e.target); show(e.target as HTMLElement, i++); }
+      });
+    }, { rootMargin: '0px 0px -8% 0px' });
+    els.forEach((el) => {
+      if (el.getBoundingClientRect().top < window.innerHeight) return; // already on screen
+      el.classList.add('reveal-hidden');
+      io.observe(el);
+    });
+    // Safety net, as in the prototype: show everything after 3 seconds.
+    setTimeout(() => els.forEach((el) => { if (el.classList.contains('reveal-hidden')) { io.unobserve(el); show(el, 0); } }), 3000);
+  }
+
+  /* ---------- Services tabs ---------- */
+  const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('[role="tab"][data-tab]'));
+  const selectTab = (tab: HTMLButtonElement, focus = false) => {
+    tabs.forEach((t) => {
+      const on = t === tab;
+      t.setAttribute('aria-selected', String(on));
+      t.tabIndex = on ? 0 : -1;
+      const panel = document.getElementById(`panel-${t.dataset.tab}`);
+      if (panel) panel.hidden = !on;
+    });
+    if (focus) tab.focus();
+  };
+  tabs.forEach((tab, i) => {
+    tab.addEventListener('click', () => selectTab(tab));
+    tab.addEventListener('keydown', (e) => {
+      let n = -1;
+      if (e.key === 'ArrowRight') n = (i + 1) % tabs.length;
+      else if (e.key === 'ArrowLeft') n = (i - 1 + tabs.length) % tabs.length;
+      else if (e.key === 'Home') n = 0;
+      else if (e.key === 'End') n = tabs.length - 1;
+      if (n >= 0) { e.preventDefault(); selectTab(tabs[n], true); }
+    });
+  });
+
+  /* ---------- Before / after slider ---------- */
+  const ba = document.getElementById('ba-slider');
+  if (ba) {
+    let pos = 50;
+    let dragging = false;
+    const setPos = (p: number) => {
+      pos = Math.max(0, Math.min(100, p));
+      ba.style.setProperty('--pos', `${pos}%`);
+      const r = Math.round(pos);
+      ba.setAttribute('aria-valuenow', String(r));
+      ba.setAttribute('aria-valuetext', `${r}% before`);
+    };
+    const fromPointer = (e: PointerEvent) => {
+      const r = ba.getBoundingClientRect();
+      setPos(((e.clientX - r.left) / r.width) * 100);
+    };
+    ba.addEventListener('pointerdown', (e) => {
+      dragging = true;
+      fromPointer(e);
+      if (e.pointerType === 'mouse') ba.setPointerCapture(e.pointerId);
+    });
+    ba.addEventListener('pointermove', (e) => { if (dragging) fromPointer(e); });
+    const stop = () => { dragging = false; };
+    ba.addEventListener('pointerup', stop);
+    ba.addEventListener('pointercancel', stop);
+    ba.addEventListener('pointerleave', stop);
+    ba.addEventListener('keydown', (e) => {
+      const step = e.shiftKey ? 10 : 5;
+      let p: number | null = null;
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') p = pos - step;
+      else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') p = pos + step;
+      else if (e.key === 'PageDown') p = pos - 20;
+      else if (e.key === 'PageUp') p = pos + 20;
+      else if (e.key === 'Home') p = 0;
+      else if (e.key === 'End') p = 100;
+      if (p !== null) { e.preventDefault(); dragging = false; setPos(p); }
+    });
+
+    // Pair picker
+    const pairBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-pair]'));
+    pairBtns.forEach((btn) => btn.addEventListener('click', () => {
+      const idx = btn.dataset.pair;
+      pairBtns.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      document.querySelectorAll<HTMLElement>('[data-pair-set]').forEach((s) => {
+        s.hidden = s.dataset.pairSet !== idx;
+        if (!s.hidden) {
+          ba.setAttribute('aria-label', `Before and after: ${s.dataset.title}`);
+          if (s.dataset.ratio) ba.style.aspectRatio = s.dataset.ratio;
+        }
+      });
+      document.querySelectorAll<HTMLElement>('[data-pair-desc]').forEach((d) => { d.hidden = d.dataset.pairDesc !== idx; });
+      setPos(50);
+    }));
+
+    // One gentle sweep the first time the slider comes into view, to show it can be dragged.
+    if (!reduce && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver((es) => {
+        if (!es[0].isIntersecting) return;
+        io.disconnect();
+        const k = [[0, 50], [700, 22], [1500, 78], [2200, 50]];
+        const t0 = performance.now();
+        const f = (t: number) => {
+          const e = t - t0;
+          if (e > 2200 || dragging) return;
+          let i = 0;
+          while (i < k.length - 2 && e > k[i + 1][0]) i++;
+          const [ta, a] = k[i], [tb, b] = k[i + 1];
+          const p = (e - ta) / (tb - ta);
+          const q = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+          setPos(a + (b - a) * q);
+          requestAnimationFrame(f);
+        };
+        requestAnimationFrame(f);
+      }, { threshold: 0.5 });
+      io.observe(ba);
+      ba.addEventListener('pointerdown', () => io.disconnect(), { once: true });
+      ba.addEventListener('keydown', () => io.disconnect(), { once: true });
+    }
+  }
+
+  /* ---------- Quote form ---------- */
+  const form = document.getElementById('quote-form') as HTMLFormElement | null;
+  const thanks = document.getElementById('form-thanks');
+  if (form && thanks) {
+    const error = form.querySelector<HTMLElement>('.form-error');
+    const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    const showThanks = () => { form.hidden = true; thanks.hidden = false; thanks.focus(); };
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const endpoint = form.dataset.endpoint;
+      if (!endpoint) { showThanks(); return; } // demo mode: no endpoint set yet
+      if (error) error.hidden = true;
+      if (submitBtn) submitBtn.disabled = true;
+      try {
+        const res = await fetch(endpoint, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        showThanks();
+      } catch {
+        if (error) error.hidden = false;
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+  }
+</script>
